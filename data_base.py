@@ -32,8 +32,11 @@ def create_table_seen_users():
     with connection.cursor() as cursor:
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS seen_users(
-        id serial,
-        vk_id varchar (50) PRIMARY KEY);""")
+        id serial PRIMARY KEY,
+        vk_id varchar (50) NOT NULL,
+        FOREIGN KEY (vk_id) REFERENCES found_users(vk_id)); """)
+
+
     print('[INFO] Table seen_users is created successfully.')
 
 
