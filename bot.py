@@ -1,37 +1,51 @@
+import json
 import datetime
 import requests
 from pprint import pprint
 import vk_api
+from vk_api import VkUpload
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from data_base import *
 import operator
 from operator import itemgetter, attrgetter, methodcaller
-offset = 1
+
+# from main import keyboard
+
+offset = 0
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+from config import token
+from config import tokenvk
+vk_authorize = vk_api.VkApi(token=token)
+longpool = VkLongPoll(vk_authorize)
 
 
-def get_token():
-    with open('token.txt', 'r') as f_o:
-        token = f_o.read().strip()
-    return token
 
-
-def get_tokenvk():
-    with open('tokenVK.txt', 'r') as f_o:
-        tokenvk = f_o.read().strip()
-    return tokenvk
+# def get_tokenvk():
+#     with open('token.txt', 'r') as f_o:
+#         tokenvk = f_o.read().strip()
+#     return tokenvk
 
 
 
 class Vkbot:
     def __init__(self):
-        self.authorize = vk_api.VkApi(token=get_token())
-        self.longpoll = VkLongPoll(self.authorize)
-        self.vk_session = vk_api.VkApi(token=get_tokenvk)
+        self.authorize = vk_api.VkApi(token=tokenvk)
+        self.vk_session = vk_api.VkApi(token=token)
+        self.longpoll = VkLongPoll(self.vk_session)
+
         self.session = requests.Session()
+        self.upload = VkUpload(self.authorize)
+
+    def sender(user_id, text):
+        bot.authorize.method('messages.send',
+                             {'user_id': user_id,
+                              'message': text,
+                              'random_id': 0,
+                              })
 
     def write_message(self, sender, message):
-        self.authorize.method('messages.send', {'user_id': sender,
+        self.vk_session.method('messages.send', {'user_id': sender,
                                                 'message': message,
                                                 'random_id': get_random_id()})
     def write_messageattach(self, sender, message, attachment):
@@ -43,7 +57,7 @@ class Vkbot:
 
     def seeker_name(self, user_id):
         url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': get_tokenvk(),
+        params = {'access_token': tokenvk,
                   'user_ids': user_id,
                   'v': '5.131'}
         resp = requests.get(url, params)
@@ -56,7 +70,7 @@ class Vkbot:
 
     def get_seekers_sex(self, user_id):
         url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': get_tokenvk(), 'user_ids': user_id,
+        params = {'access_token': tokenvk, 'user_ids': user_id,
                   'fields': 'sex', 'v': '5.131'}
         resp = requests.get(url, params=params)
         response = resp.json()
@@ -71,7 +85,7 @@ class Vkbot:
 
     def get_city_by_name(self, user_id, city_name):
         url = f'https://api.vk.com/method/database.getCities'
-        params = {'access_token': get_tokenvk(), 'q': f'{city_name}',
+        params = {'access_token': tokenvk, 'q': f'{city_name}',
                   'need_all': 0, 'count': 1000, 'v': '5.131'}
         resp = requests.get(url, params=params)
         response = resp.json()
@@ -85,7 +99,7 @@ class Vkbot:
 
     def get_city_by_user(self, user_id):
         url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': get_tokenvk(), 'fields': 'city',
+        params = {'access_token': tokenvk, 'fields': 'city',
                   'user_ids': user_id, 'v': '5.131'}
         resp = requests.get(url, params=params)
         response = resp.json()
@@ -106,7 +120,7 @@ class Vkbot:
 
     def age_from(self, user_id):
         url = f'https://api.vk.com/method/users.get'
-        params = {'access_token': get_tokenvk(), 'user_ids': user_id,
+        params = {'access_token': tokenvk, 'user_ids': user_id,
                   'fields': 'bdate', 'v': '5.131'}
         resp = requests.get(url, params=params)
         response = resp.json()
@@ -126,24 +140,23 @@ class Vkbot:
                     age = event.text
                     return age
 
-    # def age_to(self, user_id):
-    #     self.write_message(user_id, 'Возраст кандидатов до...')
-    #     for event in self.longpoll.listen():
-    #         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-    #             age_to = event.text
-    #             return age_to
+    def age_to(self, user_id):
+        self.write_message(user_id, 'Возраст кандидатов до...')
+        for event in self.longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                age_to = event.text
+                return age_to
 
     def find_candidate(self, user_id):
         url = 'https://api.vk.com/method/users.search'
 
         age_from = int(self.age_from(user_id))
-        # age_to = int(self.age_to(user_id))
-        age_to = age_from + 1
-        '''метод age_to работает не правильно'''
+        age_to = int(self.age_to(user_id))
+
         print(f'{age_from} up {age_to}')
 
 
-        params = {'access_token': get_tokenvk(), 'v': '5.131', 'sex': self.get_seekers_sex(user_id),
+        params = {'access_token': tokenvk, 'v': '5.131', 'sex': self.get_seekers_sex(user_id),
                   'age_from': age_from, 'age_to': age_to,
                   'city': self.get_city_by_user(user_id), 'relation': '6',
                   'fields': 'is_closed, id, first_name, last_name', 'count': 100}
@@ -156,34 +169,35 @@ class Vkbot:
             if person.get('is_closed') == False:
                 first_name = person.get('first_name')
                 last_name = person.get('last_name')
-                vk_id = str(person.get('id'))
+                vk_id = int(person.get('id'))
+                print(vk_id)
                 vk_link = 'vk.com/id' + str(person.get('id'))
                 insert_data_found_users(first_name, last_name, vk_id, vk_link)
             else:
                 continue
             return f'Есть результаты поиска!'
 
-    def get_fotos_id(self, user_id):
-        url = f'https://api.vk.com/method/photos.getProfile'
-        params = {'access_token': get_tokenvk(), 'v': '5.131', 'type': 'album',
-                  'person_id': 'user_id', 'extended': 1, 'count': 30
-                  }
-        resp = requests.get(url, params=params)
-        dict_fotos = dict()
-        resp_json = resp.json()
-        dict_1 = resp_json['response']
-        list_1 = dict_1['items']
-        for i in list_1:
-            foto_id = str(i.get('id'))
-            i_likes = i.get('likes')
-            if i_likes.get('count'):
-                dict_fotos['likes'] = foto_id
-        list_of_ids = sorted(dict_fotos.items(), reverse=True)
-        return list_of_ids
+    # def get_fotos_id(self, user_id):
+    #     url = f'https://api.vk.com/method/photos.getProfile'
+    #     params = {'access_token': tokenvk, 'v': '5.131', 'type': 'album',
+    #               'person_id': user_id, 'extended': 1, 'count': 30
+    #               }
+    #     resp = requests.get(url, params=params)
+    #     dict_fotos = dict()
+    #     resp_json = resp.json()
+    #     dict_1 = resp_json['response']
+    #     list_1 = dict_1['items']
+    #     for i in list_1:
+    #         foto_id = str(i.get('id'))
+    #         i_likes = i.get('likes')
+    #         if i_likes.get('count'):
+    #             dict_fotos['likes'] = foto_id
+    #     list_of_ids = sorted(dict_fotos.items(), reverse=True)
+    #     return list_of_ids
 
     def get_photo(self, user_id):
         url = f'https://api.vk.com/method/photos.getProfile'
-        params = {'access_token': get_tokenvk(), 'v': '5.131',
+        params = {'access_token': tokenvk, 'v': '5.131',
                   'type': 'album', 'owner_id': user_id,
                   'album_id': 'profile', 'count': 1000, 'extended': 1,
                   'photo_sizes': 1, 'url': url}
@@ -200,9 +214,7 @@ class Vkbot:
 
     def send_photos(self, user_id):
         attachments = []
-        upload = self.VkUpload(self.vk_session)
-
-        urls = self.get_foto(self, user_id)
+        urls = self.get_photo(self)
         link1 = urls[0]
         link2 = urls[1]
         link3 = urls[2]
@@ -211,35 +223,35 @@ class Vkbot:
         image2 = self.session.get(link2, stream=True)
         image2 = self.session.get(link3, stream=True)
 
-        photo = upload.photo_messages(photos=image1.raw)[0]
+        photo = self.upload.photo_messages(photos=image1.raw)[0]
         attachments.append('photo{}_{}'.format(photo['owner_id'], photo['id']))
         result = ','.join(attachments)
-        self.write_message(
-            user_id=user_id,
+        self.write_messageattach(
+            sender=user_id,
             attachment=result,
             message='Get some photos')
 
 
-    def object_id(self, offset):
+    def object_id(self):
         tuple_object = select_unseen(offset)
         list_object = []
         for i in tuple_object:
             list_object.append(i)
-        return list_object[2]
+        return(list_object[0])
 
-    def found_object_info(self, offset):
+    def found_object_info(self):
         unseen_info = select_unseen(offset)
         list_object = []
         for i in unseen_info:
             list_object.append(i)
         return f'{list_object[0]} {list_object[1]}, {list_object[3]}'
 
-    def find_object(self, user_id, offset):
-        self.write_message(user_id, self.found_object_info(offset))
-        self.object_id(offset)
-        insert_data_seen_users(self.object_id(offset), offset)
-        self.get_fotos_id(self.object_id(offset))
-        f_o_photos = self.get_photo(self.object_id(offset))
+    def find_object(self, user_id):
+        self.write_message(user_id, self.found_object_info())
+        self.object_id()
+        insert_data_seen_users(self.object_id())
+        self.get_photo(self.object_id())
+        f_o_photos = self.get_photo(self.object_id())
         if len(f_o_photos) > 1:
             photos_list = []
             for photo in f_o_photos:
@@ -260,6 +272,8 @@ class Vkbot:
         #     self.send_foto_3(user_id, 'Third photo', offset)
         # else:
         #     self.write_message(user_id, 'No more photos')
+
+
 
 
 bot = Vkbot()
