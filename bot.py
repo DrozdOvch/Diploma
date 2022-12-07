@@ -9,22 +9,13 @@ from vk_api.utils import get_random_id
 from data_base import *
 import operator
 from operator import itemgetter, attrgetter, methodcaller
-
-# from main import keyboard
-
 offset = 0
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from config import token
 from config import tokenvk
 vk_authorize = vk_api.VkApi(token=token)
 longpool = VkLongPoll(vk_authorize)
 
 
-
-# def get_tokenvk():
-#     with open('token.txt', 'r') as f_o:
-#         tokenvk = f_o.read().strip()
-#     return tokenvk
 
 
 
@@ -162,7 +153,7 @@ class Vkbot:
                   'fields': 'is_closed, id, first_name, last_name', 'count': 100}
         res = requests.get(url, params=params)
         resp_json = res.json()
-        print(resp_json)
+        # print(resp_json)
         resp_dict = resp_json['response']
         resp_list = resp_dict['items']
         for person in resp_list:
@@ -170,30 +161,12 @@ class Vkbot:
                 first_name = person.get('first_name')
                 last_name = person.get('last_name')
                 vk_id = int(person.get('id'))
-                print(vk_id)
                 vk_link = 'vk.com/id' + str(person.get('id'))
                 insert_data_found_users(first_name, last_name, vk_id, vk_link)
             else:
                 continue
-            return f'Есть результаты поиска!'
+            print(f'Есть результаты поиска!')
 
-    # def get_fotos_id(self, user_id):
-    #     url = f'https://api.vk.com/method/photos.getProfile'
-    #     params = {'access_token': tokenvk, 'v': '5.131', 'type': 'album',
-    #               'person_id': user_id, 'extended': 1, 'count': 30
-    #               }
-    #     resp = requests.get(url, params=params)
-    #     dict_fotos = dict()
-    #     resp_json = resp.json()
-    #     dict_1 = resp_json['response']
-    #     list_1 = dict_1['items']
-    #     for i in list_1:
-    #         foto_id = str(i.get('id'))
-    #         i_likes = i.get('likes')
-    #         if i_likes.get('count'):
-    #             dict_fotos['likes'] = foto_id
-    #     list_of_ids = sorted(dict_fotos.items(), reverse=True)
-    #     return list_of_ids
 
     def get_photo(self, user_id):
         url = f'https://api.vk.com/method/photos.getProfile'
@@ -216,6 +189,7 @@ class Vkbot:
         attachments = []
         urls = self.get_photo(self)
         link1 = urls[0]
+        print(link1)
         link2 = urls[1]
         link3 = urls[2]
 
@@ -234,6 +208,7 @@ class Vkbot:
 
     def object_id(self):
         tuple_object = select_unseen(offset)
+        print(tuple_object)
         list_object = []
         for i in tuple_object:
             list_object.append(i)
@@ -266,12 +241,7 @@ class Vkbot:
         else:
             self.write_message(user_id, 'Фотографий нет')
 
-        # self.send_foto_1(user_id, 'First photo', offset)
-        # if self.get_foto_2(self.object_id(offset)) != None:
-        #     self.send_foto_2(user_id, 'Second photo', offset)
-        #     self.send_foto_3(user_id, 'Third photo', offset)
-        # else:
-        #     self.write_message(user_id, 'No more photos')
+
 
 
 
