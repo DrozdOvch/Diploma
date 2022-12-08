@@ -80,8 +80,8 @@ try:
 
 
     def create_db():
-        drop_found_users()
-        drop_seen_users()
+        # drop_found_users()
+        # drop_seen_users()
         create_table_found_users()
         create_table_seen_users()
 

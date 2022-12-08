@@ -165,7 +165,7 @@ class Vkbot:
                 insert_data_found_users(first_name, last_name, vk_id, vk_link)
             else:
                 continue
-            print(f'Есть результаты поиска!')
+
 
 
     def get_photo(self, user_id):
@@ -177,38 +177,69 @@ class Vkbot:
 
         response = requests.get(url, params=params)
         resp_json = response.json()
-        pprint(resp_json)
         photos = []
         for photo in resp_json['response']['items']:
-            photos.append((photo['id'], photo['sizes'][-1]['url'], photo['likes']['count']))
+            photos.append((photo['id'], photo['owner_id'], photo['likes']['count']))
             sorted_photos = sorted(photos, key=operator.itemgetter(2), reverse=True)
             top3_photos = [(id, photo) for id, photo, _ in sorted_photos][:3]
         return top3_photos
 
+    def get_urls(self, user_id):
+        url = f'https://api.vk.com/method/photos.getProfile'
+        params = {'access_token': tokenvk, 'v': '5.131',
+                  'type': 'album', 'owner_id': user_id,
+                  'album_id': 'profile', 'count': 1000, 'extended': 1,
+                  'photo_sizes': 1, 'url': url}
+
+        response = requests.get(url, params=params)
+        resp_json = response.json()
+        # pprint(resp_json)
+        photos = []
+        for photo in resp_json['response']['items']:
+            photos.append((photo['id'], photo['sizes'][-1]['url'], photo['likes']['count']))
+            sorted_photos = sorted(photos, key=operator.itemgetter(2), reverse=True)
+            # print(sorted_photos)
+            top3 = [(id, photo) for id, photo, _ in sorted_photos][:3]
+            top3_urls = [x[1] for x in top3]
+        return top3_urls
+
+
     def send_photos(self, user_id):
-        attachments = []
-        urls = self.get_photo(self)
-        link1 = urls[0]
-        print(link1)
-        link2 = urls[1]
-        link3 = urls[2]
+        top3_urls = self.get_urls(self.object_id())
+        print(top3_urls)
+        for ul in top3_urls:
+            r = requests.get(ul)
+            with open('image.jpg', 'wb') as fd:
+                for chunk in r.iter_content(4086):
+                    fd.write(chunk)
+                    image = 'image.jpg'
+                    attachment = []
+                    upload_image = self.upload.photo_messages(photos=image)[0]
+                    attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
+                    self.write_messageattach(user_id, '', attachment)
 
-        image1 = self.session.get(link1, stream=True)
-        image2 = self.session.get(link2, stream=True)
-        image2 = self.session.get(link3, stream=True)
 
-        photo = self.upload.photo_messages(photos=image1.raw)[0]
-        attachments.append('photo{}_{}'.format(photo['owner_id'], photo['id']))
-        result = ','.join(attachments)
-        self.write_messageattach(
-            sender=user_id,
-            attachment=result,
-            message='Get some photos')
+        # link1 = urls[0]
+        # link2 = urls[1]
+        # link3 = urls[2]
+        #
+        # image1 = self.session.get(link1, stream=True)
+        # image2 = self.session.get(link2, stream=True)
+        # image2 = self.session.get(link3, stream=True)
+        #
+        # photo = self.upload.photo_messages(photos=image1.raw)[0]
+        # attachments.append('{}_{}'.format(photo['owner_id'], photo['id']))
+        # result = ','.join(attachments)
+        # self.write_messageattach(
+        #     sender=user_id,
+        #     attachment=result,
+        #     message='Есть фотографии!')
+
 
 
     def object_id(self):
         tuple_object = select_unseen(offset)
-        print(tuple_object)
+        # print(tuple_object)
         list_object = []
         for i in tuple_object:
             list_object.append(i)
@@ -219,7 +250,7 @@ class Vkbot:
         list_object = []
         for i in unseen_info:
             list_object.append(i)
-        return f'{list_object[0]} {list_object[1]}, {list_object[3]}'
+        return f'{list_object[1]} {list_object[2]}, {list_object[3]}'
 
     def find_object(self, user_id):
         self.write_message(user_id, self.found_object_info())
@@ -227,22 +258,54 @@ class Vkbot:
         insert_data_seen_users(self.object_id())
         self.get_photo(self.object_id())
         f_o_photos = self.get_photo(self.object_id())
+        print(f_o_photos)
         if len(f_o_photos) > 1:
             photos_list = []
             for photo in f_o_photos:
                 photo_id, owner_id = photo
-                photos_list.append(f'photo{owner_id}_{photo_id}')
+                photos_list.append(f'{owner_id}_{photo_id}')
+                print(photos_list)
                 photos = ','.join(photos_list)
-                self.write_message(user_id, photos)
+                urls = self.get_urls(self.object_id())
+                print(urls)
+                for ul in urls:
+                    r = requests.get(ul)
+                    with open('image.jpg', 'wb') as fd:
+                        for chunk in r.iter_content(4086):
+                            fd.write(chunk)
+                            image = 'image.jpg'
+                            attachment = []
+                            upload_image = self.upload.photo_messages(photos=image)[0]
+                            attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
+                            self.write_messageattach(user_id, '', attachment)
+            #
+            #
+            # self.write_message(user_id, attachment)
         elif len(f_o_photos) == 1:
             photo_id, owner_id = f_o_photos[0]
-            photos = f'photo{owner_id}_{photo_id}'
+            photos = f'{owner_id}_{photo_id}'
             self.write_message(user_id, photos)
         else:
+
             self.write_message(user_id, 'Фотографий нет')
 
-
-
+    # def find_object(self, user_id):
+    #     self.write_message(user_id, self.found_object_info())
+    #     self.object_id()
+    #     insert_data_seen_users(self.object_id())
+    #     self.get_photo(self.object_id())
+    #     f_o_photos = self.get_photo(self.object_id())
+    #     if len(f_o_photos) > 1:
+    #         photos_list = []
+    #         for photo in f_o_photos:
+    #             self.send_photos(user_id)
+    #     elif len(f_o_photos) == 1:
+    #         photo_id, owner_id = f_o_photos[0]
+    #         photos = f'{owner_id}_{photo_id}'
+    #         self.write_message(user_id, photos)
+    #     else:
+    #         self.write_message(user_id, 'Фотографий нет')
+    #
 
 
 
