@@ -3,7 +3,7 @@ import datetime
 import requests
 from pprint import pprint
 import vk_api
-from vk_api import VkUpload
+from vk_api import VkUpload, upload
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 from data_base import *
@@ -43,7 +43,7 @@ class Vkbot:
         self.vk_session.method('messages.send', {'user_id': sender,
                                                 'message': message,
                                                 'random_id': get_random_id(),
-                                                'attachment': attachment})
+                                                'attachment': None})
 
 
     def seeker_name(self, user_id):
@@ -258,33 +258,35 @@ class Vkbot:
         insert_data_seen_users(self.object_id())
         self.get_photo(self.object_id())
         f_o_photos = self.get_photo(self.object_id())
-        print(f_o_photos)
+        # print(f_o_photos)
         if len(f_o_photos) > 1:
             photos_list = []
             for photo in f_o_photos:
                 photo_id, owner_id = photo
                 photos_list.append(f'{owner_id}_{photo_id}')
-                print(photos_list)
+                # print(photos_list)
                 photos = ','.join(photos_list)
                 urls = self.get_urls(self.object_id())
-                print(urls)
+                # photo = ''
                 for ul in urls:
                     r = requests.get(ul)
                     with open('image.jpg', 'wb') as fd:
-                        for chunk in r.iter_content(4086):
+                        for chunk in r.iter_content():
                             fd.write(chunk)
-                            image = 'image.jpg'
-                            attachment = []
-                            upload_image = self.upload.photo_messages(photos=image)[0]
-                            attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
-                            self.write_messageattach(user_id, '', attachment)
+                photo = 'image.jpg'
+                attachment = []
+                # upload_image = photos_list
+                upload_image = self.upload.photo_messages('image.jpg')[0]
+                attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
+                print(attachment)
+                self.write_messageattach(user_id, message='photo', attachment=attachment)
             #
             #
             # self.write_message(user_id, attachment)
         elif len(f_o_photos) == 1:
             photo_id, owner_id = f_o_photos[0]
-            photos = f'{owner_id}_{photo_id}'
-            self.write_message(user_id, photos)
+            photos = f'photo{owner_id}_{photo_id}'
+            self.write_messageattach(user_id, photos)
         else:
 
             self.write_message(user_id, 'Фотографий нет')
