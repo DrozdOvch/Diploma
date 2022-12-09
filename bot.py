@@ -281,9 +281,7 @@ class Vkbot:
                 # print(attachment)
             message = 'есть фото!'
             self.write_messageattach(user_id, message, attachment)
-            #
-            #
-            # self.write_message(user_id, attachment)
+
         elif len(f_o_photos) == 1:
             photo_id, owner_id = f_o_photos[0]
             photos = f'photo{owner_id}_{photo_id}'
