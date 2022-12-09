@@ -40,10 +40,10 @@ class Vkbot:
                                                 'message': message,
                                                 'random_id': get_random_id()})
     def write_messageattach(self, sender, message, attachment):
-        self.vk_session.method('messages.send', {'user_id': sender,
+        self.authorize.method('messages.send', {'user_id': sender,
                                                 'message': message,
                                                 'random_id': get_random_id(),
-                                                'attachment': None})
+                                                'attachment': ','.join(attachment)})
 
 
     def seeker_name(self, user_id):
@@ -204,19 +204,19 @@ class Vkbot:
         return top3_urls
 
 
-    def send_photos(self, user_id):
-        top3_urls = self.get_urls(self.object_id())
-        print(top3_urls)
-        for ul in top3_urls:
-            r = requests.get(ul)
-            with open('image.jpg', 'wb') as fd:
-                for chunk in r.iter_content(4086):
-                    fd.write(chunk)
-                    image = 'image.jpg'
-                    attachment = []
-                    upload_image = self.upload.photo_messages(photos=image)[0]
-                    attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
-                    self.write_messageattach(user_id, '', attachment)
+    # def send_photos(self, user_id):
+    #     top3_urls = self.get_urls(self.object_id())
+    #     print(top3_urls)
+    #     for ul in top3_urls:
+    #         r = requests.get(ul)
+    #         with open('image.jpg', 'wb') as fd:
+    #             for chunk in r.iter_content(4086):
+    #                 fd.write(chunk)
+    #                 image = 'image.jpg'
+    #                 attachment = []
+    #                 upload_image = self.upload.photo_messages(photos=image)[0]
+    #                 attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
+    #                 self.write_messageattach(user_id, '', attachment)
 
 
         # link1 = urls[0]
@@ -279,7 +279,7 @@ class Vkbot:
                 upload_image = self.upload.photo_messages('image.jpg')[0]
                 attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
                 print(attachment)
-                self.write_messageattach(user_id, message='photo', attachment=attachment)
+                self.write_message(user_id, attachment)
             #
             #
             # self.write_message(user_id, attachment)
