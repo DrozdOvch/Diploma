@@ -260,25 +260,25 @@ class Vkbot:
         f_o_photos = self.get_photo(self.object_id())
         # print(f_o_photos)
         if len(f_o_photos) > 1:
+            attachment = []
             photos_list = []
-            for photo in f_o_photos:
-                photo_id, owner_id = photo
-                photos_list.append(f'{owner_id}_{photo_id}')
-                # print(photos_list)
-                photos = ','.join(photos_list)
-                urls = self.get_urls(self.object_id())
-                # photo = ''
-                for ul in urls:
-                    r = requests.get(ul)
-                    with open('image.jpg', 'wb') as fd:
-                        for chunk in r.iter_content():
-                            fd.write(chunk)
-                    photo = 'image.jpg'
-                    attachment = []
-                    # upload_image = photos_list
-                    upload_image = self.upload.photo_messages('image.jpg')[0]
-                    attachment.append('photo{}_{}_{}'.format(upload_image['owner_id'], upload_image['id'], upload_image['access_key']))
-                    # print(attachment)
+            urls = self.get_urls(self.object_id())
+            # for photo in f_o_photos:
+            #     # photo_id, owner_id = photo
+            #     # photos_list.append(f'{owner_id}_{photo_id}')
+            #     # # print(photos_list)
+            #     # photos = ','.join(photos_list)
+            #     # # photo = ''
+            for ul in urls:
+                r = requests.get(ul)
+                with open('image.jpg', 'wb') as fd:
+                    for chunk in r.iter_content():
+                        fd.write(chunk)
+                # photo = 'image.jpg'
+                # upload_image = photos_list
+                upload_image = self.upload.photo_messages('image.jpg')[0]
+                attachment.append('photo{}_{}_{}'.format(upload_image['owner_id'], upload_image['id'], upload_image['access_key']))
+                # print(attachment)
             message = 'есть фото!'
             self.write_messageattach(user_id, message, attachment)
             #
