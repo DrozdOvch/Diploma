@@ -12,8 +12,8 @@ from operator import itemgetter, attrgetter, methodcaller
 offset = 0
 from config import token
 from config import tokenvk
-vk_authorize = vk_api.VkApi(token=token)
-longpool = VkLongPoll(vk_authorize)
+# vk_authorize = vk_api.VkApi(token=token)
+# longpool = VkLongPoll(vk_authorize)
 
 
 
@@ -29,7 +29,7 @@ class Vkbot:
         self.upload = VkUpload(self.authorize)
 
     def sender(user_id, text):
-        bot.authorize.method('messages.send',
+        bot.vk_session.method('messages.send',
                              {'user_id': user_id,
                               'message': text,
                               'random_id': 0,
@@ -40,7 +40,7 @@ class Vkbot:
                                                 'message': message,
                                                 'random_id': get_random_id()})
     def write_messageattach(self, sender, message, attachment):
-        self.authorize.method('messages.send', {'user_id': sender,
+        self.vk_session.method('messages.send', {'user_id': sender,
                                                 'message': message,
                                                 'random_id': get_random_id(),
                                                 'attachment': ','.join(attachment)})
@@ -198,7 +198,7 @@ class Vkbot:
         for photo in resp_json['response']['items']:
             photos.append((photo['id'], photo['sizes'][-1]['url'], photo['likes']['count']))
             sorted_photos = sorted(photos, key=operator.itemgetter(2), reverse=True)
-            # print(sorted_photos)
+            # print(len(sorted_photos))
             top3 = [(id, photo) for id, photo, _ in sorted_photos][:3]
             top3_urls = [x[1] for x in top3]
         return top3_urls
@@ -273,13 +273,14 @@ class Vkbot:
                     with open('image.jpg', 'wb') as fd:
                         for chunk in r.iter_content():
                             fd.write(chunk)
-                photo = 'image.jpg'
-                attachment = []
-                # upload_image = photos_list
-                upload_image = self.upload.photo_messages('image.jpg')[0]
-                attachment.append('photo{}_{}'.format(upload_image['owner_id'], upload_image['id']))
-                print(attachment)
-                self.write_message(user_id, attachment)
+                    photo = 'image.jpg'
+                    attachment = []
+                    # upload_image = photos_list
+                    upload_image = self.upload.photo_messages('image.jpg')[0]
+                    attachment.append('photo{}_{}_{}'.format(upload_image['owner_id'], upload_image['id'], upload_image['access_key']))
+                    # print(attachment)
+            message = 'есть фото!'
+            self.write_messageattach(user_id, message, attachment)
             #
             #
             # self.write_message(user_id, attachment)
