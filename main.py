@@ -7,7 +7,7 @@ for event in bot.longpoll.listen():
         user_id = str(event.user_id)
         message = event.text.lower()
         sender = (user_id, message.lower())
-        list_help = ('Список понятных мне команд: справка, поиск, продолжить, пока')
+        list_help = ('Список понятных мне команд: справка, поиск, еще, пока')
         if reseived_message == 'привет!':
 
             bot.write_message(sender[0], f'Привет! {bot.seeker_name(user_id)}, {list_help}')
@@ -19,7 +19,7 @@ for event in bot.longpoll.listen():
             bot.find_candidate(user_id)
             bot.find_object(user_id)
             bot.write_message(sender[0], 'Продолжим?')
-        elif reseived_message == "продолжить":
+        elif reseived_message == "еще":
             for i in range(0, 1000):
                 offset += 1
                 bot.find_object(user_id)
