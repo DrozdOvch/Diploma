@@ -15,8 +15,6 @@ from config import token
 from config import tokenvk
 
 
-
-
 class Vkbot:
     def __init__(self):
         self.authorize = vk_api.VkApi(token=tokenvk)
@@ -61,8 +59,6 @@ class Vkbot:
             print('Data error')
             return None
 
-
-
     def get_seekers_sex(self, user_id):
         url = f'https://api.vk.com/method/users.get'
         params = {'access_token': tokenvk, 'user_ids': user_id,
@@ -82,7 +78,6 @@ class Vkbot:
             print('Data error')
             return None
 
-
     def get_city_by_name(self, user_id, city_name):
         url = f'https://api.vk.com/method/database.getCities'
         params = {'access_token': tokenvk, 'q': f'{city_name}',
@@ -100,8 +95,6 @@ class Vkbot:
         except KeyError:
             print('Data error')
             return None
-
-
 
     def get_city_by_user(self, user_id):
         url = f'https://api.vk.com/method/users.get'
@@ -128,7 +121,6 @@ class Vkbot:
         except KeyError:
             print('Data error')
             return None
-
 
     def age_from(self, user_id):
         url = f'https://api.vk.com/method/users.get'
@@ -174,12 +166,11 @@ class Vkbot:
 
         params = {'access_token': tokenvk, 'v': '5.131', 'sex': self.get_seekers_sex(user_id),
                   'age_from': age_from, 'age_to': age_to,
-                  'city': self.get_city_by_user(user_id), 'relation': '6',
+                  'city': self.get_city_by_user(user_id), 'status': '1' or '6',
                   'fields': 'is_closed, id, first_name, last_name', 'count': 100}
         res = requests.get(url, params=params)
         resp_json = res.json()
-        resp = requests.get(url, params)
-        response = resp.json()
+
         try:
             resp_dict = resp_json['response']
             resp_list = resp_dict['items']
@@ -195,6 +186,7 @@ class Vkbot:
         except KeyError:
             print('Data error')
             return None
+
     def get_photo(self, user_id):
         url = f'https://api.vk.com/method/photos.getProfile'
         params = {'access_token': tokenvk, 'v': '5.131',
@@ -217,6 +209,7 @@ class Vkbot:
         except KeyError:
             print('Data error')
             return None
+
     def get_urls(self, user_id):
         url = f'https://api.vk.com/method/photos.getProfile'
         params = {'access_token': tokenvk, 'v': '5.131',
@@ -238,6 +231,7 @@ class Vkbot:
         except KeyError:
             print('Data error')
             return None
+
     def object_id(self):
         tuple_object = select_unseen(offset)
         # print(tuple_object)
@@ -252,6 +246,7 @@ class Vkbot:
         for i in unseen_info:
             list_object.append(i)
         return f'{list_object[1]} {list_object[2]}, {list_object[3]}'
+        # print(f'{list_object[1]} {list_object[2]}, {list_object[3]}')
 
     def find_object(self, user_id):
         self.write_message(user_id, self.found_object_info())
@@ -286,7 +281,8 @@ class Vkbot:
                 for chunk in r.iter_content():
                     fd.write(chunk)
             upload_image = self.upload.photo_messages('image.jpg')[0]
-            attachment.append('photo{}_{}_{}'.format(upload_image['owner_id'], upload_image['id'], upload_image['access_key']))
+            attachment.append(
+                'photo{}_{}_{}'.format(upload_image['owner_id'], upload_image['id'], upload_image['access_key']))
             self.write_messageattach(user_id, 'Только одно фото', attachment)
         else:
 

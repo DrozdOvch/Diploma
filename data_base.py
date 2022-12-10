@@ -39,7 +39,7 @@ try:
         print('[INFO] Table seen_users is created successfully.')
 
 
-    '''должна быть логика позволдяющаая исключитьвозможность добавления одинаковых ид в базуON CONFLICT (vk_id) DO NOTHING'''
+
     def insert_data_found_users(first_name, last_name, vk_id, vk_link):
         with connection.cursor() as cursor:
             cursor.execute(f"""INSERT INTO found_users (first_name, last_name, vk_id, vk_link)

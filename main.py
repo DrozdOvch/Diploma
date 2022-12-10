@@ -23,6 +23,7 @@ for event in bot.longpoll.listen():
             for i in range(0, 1000):
                 offset += 1
                 bot.find_object(user_id)
+                bot.write_message(sender[0], 'Еще?')
                 break
         elif reseived_message == "справка":
             bot.write_message(sender[0], f'{list_help}')
