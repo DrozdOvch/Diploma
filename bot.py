@@ -234,7 +234,7 @@ class Vkbot:
 
     def object_id(self):
         tuple_object = select_unseen(offset)
-        # print(tuple_object)
+
         list_object = []
         for i in tuple_object:
             list_object.append(i)
@@ -246,7 +246,6 @@ class Vkbot:
         for i in unseen_info:
             list_object.append(i)
         return f'{list_object[1]} {list_object[2]}, {list_object[3]}'
-        # print(f'{list_object[1]} {list_object[2]}, {list_object[3]}')
 
     def find_object(self, user_id):
         self.write_message(user_id, self.found_object_info())
@@ -254,7 +253,6 @@ class Vkbot:
         insert_data_seen_users(self.object_id())
         self.get_photo(self.object_id())
         f_o_photos = self.get_photo(self.object_id())
-        # print(f_o_photos)
         if len(f_o_photos) > 1:
             attachment = []
             photos_list = []
